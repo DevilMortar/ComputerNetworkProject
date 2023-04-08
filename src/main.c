@@ -12,6 +12,8 @@
 int main(int argc, char const *argv[])
 {
     system("clear");
+    color("01");
+    color("37");
     // Check arguments
     if (argc != 2)
     {
@@ -43,8 +45,7 @@ int main(int argc, char const *argv[])
             perror("accept");
             continue;
         }
-
-        printf("Server got connection from %s\n", inet_ntoa(client_addr.sin_addr));
+        printf("Server got connection from %s !\n", inet_ntoa(client_addr.sin_addr));
 
         // Receive data
         char buffer[1024];
@@ -56,8 +57,18 @@ int main(int argc, char const *argv[])
         }
 
         buffer[numbytes] = '\0';
-        printf("Received: %s\n", buffer);
-        parseRequest(buffer);
+        HTTPRequest * received = parseHTTPRequest(buffer);
+        printHTTPRequest(received);
+        HTTPResponse * response = createHTTPResponse(received);
+        printHTTPResponse(response);
+        // Send HTTP response to client
+        char *responseStr = unparseHTTPResponse(response);
+        if (send(new_fd, responseStr, strlen(responseStr), 0) == -1)
+        {
+            perror("send");
+        }
+        //freeHTTPRequest(received);
+        //freeHTTPResponse(response);
 
         // Close connection
         close(new_fd);
