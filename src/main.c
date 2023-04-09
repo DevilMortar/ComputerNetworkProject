@@ -58,6 +58,11 @@ int main(int argc, char const *argv[])
 
         buffer[numbytes] = '\0';
         HTTPRequest * received = parseHTTPRequest(buffer);
+        if (received == NULL)
+        {
+            printf("Error parsing HTTP request\n");
+            continue;
+        }
         printHTTPRequest(received);
         HTTPResponse * response = createHTTPResponse(received);
         // Send HTTP response to client

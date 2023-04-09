@@ -83,7 +83,7 @@ HTTPRequest *parseHTTPRequest(char buffer[1024])
     if (strlen(copy) == 0)
     {
         printf("Buffer is empty\n");
-        return initHTTPRequest();
+        return null;
     }
     HTTPRequest *request = initHTTPRequest();
     const char *delim = " \n";
