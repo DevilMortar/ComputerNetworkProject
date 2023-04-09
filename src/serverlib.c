@@ -133,22 +133,26 @@ void printHTTPRequest(HTTPRequest *request)
 
 void freeHTTPRequest(HTTPRequest *request)
 {
-    
-    
+    free(request->method);
+    free(request->path);
+    free(request->version);
+    free(request->host);
+    free(request->user_agent);
+    free(request->accept);
+    free(request->accept_language);
+    free(request->accept_encoding);
+    free(request->connection);
+    free(request->upgrade_insecure_requests);
+    free(request);
 }
 
 HTTPResponse *initHTTPResponse()
 {
     HTTPResponse *response = malloc(sizeof(HTTPResponse));
-    response->version = malloc(10 * sizeof(char));
-    response->status_code = malloc(10 * sizeof(char));
-    response->status_message = malloc(100 * sizeof(char));
-    response->date = malloc(100 * sizeof(char));
-    response->server = malloc(100 * sizeof(char));
     response->content_type = malloc(100 * sizeof(char));
     response->content_length = malloc(15 * sizeof(char));
     response->content = NULL;
-    response->connection = malloc(100 * sizeof(char));
+    response->binary = 0;
     return response;
 }
 
@@ -156,12 +160,6 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
 {
     // Create response
     HTTPResponse *response = initHTTPResponse();
-    strcpy(response->version, "HTTP/1.1");
-    strcpy(response->date, "Thu, 01 Jan 1970 00:00:00 GMT");
-    strcpy(response->server, "ComputerNetworkProject");
-    strcpy(response->status_code, "200");
-    strcpy(response->status_message, "OK");
-    strcpy(response->connection, "keep-alive");
 
     // Get the file path
     char *path = request->path;
@@ -176,21 +174,22 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
     // Check if the file exists
     if (access(file_path, F_OK) != 0)
     {
-        // File not found
-        strcpy(response->status_code, "404");
-        strcpy(response->status_message, "Not Found");
-        strcpy(response->connection, "close");
+        response->header = "HTTP/1.1 404 Not Found\r\n";
         // Set the file path to the 404 page
         strcpy(file_path, "www/404.html");
     }
+    else {
+        response->header = "HTTP/1.1 200 OK\r\n";
+    }
 
-    // Check if the file is an html file
+    // Complete the contents fields according to the file type
     if (strstr(file_path, ".html") != NULL)
     {
         strcpy(response->content_type, "text/html");
         char *content = readFile(file_path);
         sprintf(response->content_length, "%ld", strlen(content));
         response->content = content;
+        response->binary = 0;
     }
     else if (strstr(file_path, ".css") != NULL)
     {
@@ -198,75 +197,101 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
         char *content = readFile(file_path);
         sprintf(response->content_length, "%ld", strlen(content));
         response->content = content;
+        response->binary = 0;
     }
     else if (strstr(file_path, ".gif") != NULL)
     {
+        size_t size = 0;
         strcpy(response->content_type, "image/gif");
-        response->content = readImage(file_path);
-        sprintf(response->content_length, "%ld", strlen(response->content));
-        printf("Image Set\n");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
+    }
+    else if (strstr(file_path, "webp") != NULL)
+    {
+        size_t size = 0;
+        strcpy(response->content_type, "image/webp");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
+    }
+    else if (strstr(file_path, "png") != NULL)
+    {
+        size_t size = 0;
+        strcpy(response->content_type, "image/png");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
     }
     else if (strstr(file_path, ".pdf") != NULL) {
+        size_t size = 0;
         strcpy(response->content_type, "application/pdf");
-        response->content = readImage(file_path);
-        sprintf(response->content_length, "%ld", strlen(response->content));
-        printf("PDF Set\n");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
     }
     return response;
 }
 
 char *unparseHTTPResponse(HTTPResponse *response)
 {
-    size_t size = strlen(response->version) + strlen(response->status_code) + strlen(response->status_message) + strlen(response->content_type) + strlen(response->content_length) + strlen(response->connection) + strlen(response->date) + strlen(response->server) + 100;
-    char *buffer = malloc(size * sizeof(char));
-    strcpy(buffer, response->version);
-    strcat(buffer, " ");
-    strcat(buffer, response->status_code);
-    strcat(buffer, " ");
-    strcat(buffer, response->status_message);
-    strcat(buffer, "\n");
-    strcat(buffer, "Connection: ");
-    strcat(buffer, response->connection);
-    strcat(buffer, "\n");
-    strcat(buffer, "Date: ");
-    strcat(buffer, response->date);
-    strcat(buffer, "\n");
-    strcat(buffer, "Server: ");
-    strcat(buffer, response->server);
-    strcat(buffer, "\n\n");
-    if (response->content != NULL)
-        buffer = realloc(buffer, (size + strlen(response->content)) * sizeof(char));
+    char *type = "Content-Type: ";
+    char *length = "Content-Length: ";
+    char *end = "\r\n";
+    response->response_size = 0;
+    if (response->binary == 1)
+    {
+        // cast content_length to int to avoid warning
+        int content_length = atoi(response->content_length);
+        response->response_size = (strlen(response->header) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end)) * sizeof(char) + content_length + 1;
+    }
+    else {
+        response->response_size = (strlen(response->header) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end) + strlen(response->content)) * sizeof(char) + 1;
+    }
+    char *buffer = malloc(response->response_size);
+    strcpy(buffer, response->header);
+    strcat(buffer, type);
+    strcat(buffer, response->content_type);
+    strcat(buffer, end);
+    strcat(buffer, length);
+    strcat(buffer, response->content_length);
+    strcat(buffer, end);
+    strcat(buffer, end);
+
+
+    if (response->binary == 1)
+    {
+        memcpy(buffer + strlen(buffer), response->file_data, atoi(response->content_length));
+    }
+    else {
         strcat(buffer, response->content);
+    }
     return buffer;
 }
 
+    
+
 void printHTTPResponse(HTTPResponse *response)
 {
+    printf("Server response:\n");
     color("00");
-    color("33");
-    printf("Version: %s\n", response->version);
-    printf("Status code: %s\n", response->status_code);
-    printf("Status message: %s\n", response->status_message);
-    printf("Date: %s\n", response->date);
-    printf("Server: %s\n", response->server);
-    printf("Content type: %s\n", response->content_type);
-    printf("Content length: %s\n", response->content_length);
-    printf("Connection: %s\n", response->connection);
-    printf("Content: %s\n\n", response->content);
+    color("34");
+    char * buffer = unparseHTTPResponse(response);
+    printf("%s\n\n", buffer);
+    color("00");
     color("37");
     color("01");
 }
 
 void freeHTTPResponse(HTTPResponse *response)
 {
-    free(response->version);
-    free(response->status_code);
-    free(response->status_message);
-    free(response->date);
-    free(response->server);
+    free(response->header);
     free(response->content_type);
     free(response->content_length);
-    free(response->connection);
     free(response->content);
     free(response);
 }
@@ -292,59 +317,24 @@ char *readFile(char *file_path)
             strcat(content, s);
         }
     }
-    printf("Reading finished\n");
     strcat(content, "\0");
     fclose(file);
     return content;
 }
 
-char * readImage(char *file_path) {
+void * readImage(char *file_path, size_t *size) {
     // Read size of file
     FILE *file = fopen(file_path, "rb");
-    size_t size = 0;
 
     // Get file size
     fseek(file, 0, SEEK_END);
-    size = ftell(file);
+    *size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
     // Read file
-    char *content = malloc(size * sizeof(char));
-    size_t byte_reads = fread(content, 1, size, file);
+    void *content = malloc(*size);
+    fread(content, 1, *size, file);
 
-    // Encode content to base64
-    const char *b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    size_t b64_size = (size + 2) / 3 * 4 +1;
-    char *b64_content = (char*)malloc(b64_size * sizeof(char));
-
-    // Encode 3 bytes at a time
-    size_t i = 0;
-    size_t j = 0;
-    for (i = 0; i < size; i += 3) {
-        // Read 3 bytes
-        unsigned char bytes[3];
-        bytes[0] = (i + 0 < size) ? content[i + 0] : 0;
-        bytes[1] = (i + 1 < size) ? content[i + 1] : 0;
-        bytes[2] = (i + 2 < size) ? content[i + 2] : 0;
-
-        // Encode 3 bytes to 4 characters
-        b64_content[j++] = b64[bytes[0] >> 2];
-        b64_content[j++] = b64[((bytes[0] & 0x3) << 4) | (bytes[1] >> 4)];
-        b64_content[j++] = b64[((bytes[1] & 0xF) << 2) | (bytes[2] >> 6)];
-        b64_content[j++] = b64[bytes[2] & 0x3F];
-    }
-
-    // Add padding
-    for (i = 0; i < (3 - size % 3) % 3; i++) {
-        b64_content[b64_size - 1 - i] = '=';
-    }
-
-    // Transform to string
-    b64_content[b64_size] = '\0';
-    
-
-    fclose(file);
-
-    return b64_content;
+    return content;
 }
 
