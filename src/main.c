@@ -60,15 +60,13 @@ int main(int argc, char const *argv[])
         HTTPRequest * received = parseHTTPRequest(buffer);
         printHTTPRequest(received);
         HTTPResponse * response = createHTTPResponse(received);
-        printHTTPResponse(response);
         // Send HTTP response to client
         char *responseStr = unparseHTTPResponse(response);
-        if (send(new_fd, responseStr, strlen(responseStr), 0) == -1)
+        printHTTPResponse(response);
+        if (send(new_fd, responseStr, response->response_size, 0) == -1)
         {
             perror("send");
         }
-        //freeHTTPRequest(received);
-        //freeHTTPResponse(response);
 
         // Close connection
         close(new_fd);
