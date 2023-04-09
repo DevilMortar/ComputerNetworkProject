@@ -9,6 +9,7 @@
 #include <unistd.h>     /* pour sleep */
 #include <poll.h>
 #include <stdbool.h>
+#include <math.h>
 
 #define color(x) printf("\033[%sm", x)
 
@@ -28,16 +29,13 @@ typedef struct HTTPRequest
 
 typedef struct HTTPResponse
 {
-    char *version;
-    char *status_code;
-    char *status_message;
-    char *date;
-    char *server;
-    char *last_modified;
+    char *header;
     char *content_type;
     char *content_length;
-    char *connection;
     char *content;
+    void *file_data;
+    char *response_size;
+    bool binary;
 } HTTPResponse;
 
 /***
@@ -132,5 +130,5 @@ char * readFile(char * file_path);
  * @param path Path to the Image file
  * @return Pointer to char array
 */
-char *readImage(char *file_path);
+void *readImage(char *file_path, size_t *size);
 
