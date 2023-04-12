@@ -176,7 +176,7 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
     {
         response->header = "HTTP/1.1 404 Not Found\r\n";
         // Set the file path to the 404 page
-        strcpy(file_path, "www/404.html");
+        strcpy(file_path, "www/html/404.html");
     }
     else {
         response->header = "HTTP/1.1 200 OK\r\n";
