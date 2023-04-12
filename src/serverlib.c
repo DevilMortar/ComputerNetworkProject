@@ -82,8 +82,7 @@ HTTPRequest *parseHTTPRequest(char buffer[1024])
     strcpy(copy, buffer);
     if (strlen(copy) == 0)
     {
-        printf("Buffer is empty\n");
-        return initHTTPRequest();
+        return NULL;
     }
     HTTPRequest *request = initHTTPRequest();
     const char *delim = " \n";
@@ -129,21 +128,6 @@ void printHTTPRequest(HTTPRequest *request)
     printf("Upgrade insecure requests: %s\n\n", request->upgrade_insecure_requests);
     color("37");
     color("01");
-}
-
-void freeHTTPRequest(HTTPRequest *request)
-{
-    free(request->method);
-    free(request->path);
-    free(request->version);
-    free(request->host);
-    free(request->user_agent);
-    free(request->accept);
-    free(request->accept_language);
-    free(request->accept_encoding);
-    free(request->connection);
-    free(request->upgrade_insecure_requests);
-    free(request);
 }
 
 HTTPResponse *initHTTPResponse()
@@ -234,6 +218,36 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
         sprintf(response->content_length, "%ld", size);
         response->binary = 1;
     }
+    // JPG
+    else if (strstr(file_path, ".jpg") != NULL)
+    {
+        size_t size = 0;
+        strcpy(response->content_type, "image/jpeg");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
+    }
+    // MP3
+    else if (strstr(file_path, ".mp3") != NULL)
+    {
+        size_t size = 0;
+        strcpy(response->content_type, "audio/mpeg");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
+    }
+    // MP4
+    else if (strstr(file_path, ".mp4") != NULL)
+    {
+        size_t size = 0;
+        strcpy(response->content_type, "video/mp4");
+        response->file_data = readImage(file_path, &size);
+        response->content = "";
+        sprintf(response->content_length, "%ld", size);
+        response->binary = 1;
+    }
     return response;
 }
 
@@ -285,15 +299,6 @@ void printHTTPResponse(HTTPResponse *response)
     color("00");
     color("37");
     color("01");
-}
-
-void freeHTTPResponse(HTTPResponse *response)
-{
-    free(response->header);
-    free(response->content_type);
-    free(response->content_length);
-    free(response->content);
-    free(response);
 }
 
 char *readFile(char *file_path)

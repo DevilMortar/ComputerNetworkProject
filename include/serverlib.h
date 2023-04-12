@@ -81,12 +81,6 @@ HTTPRequest * initHTTPRequest();
 void printHTTPRequest(HTTPRequest * request);
 
 /***
- * Free the HTTPRequest structure
- * @param request Pointer to HTTPRequest structure
-*/
-void freeHTTPRequest(HTTPRequest * request);
-
-/***
  * Initialize the HTTPResponse structure
  * @return Pointer to HTTPResponse structure
 */
@@ -111,12 +105,6 @@ char * unparseHTTPResponse(HTTPResponse * response);
  * @param response Pointer to HTTPResponse structure
 */
 void printHTTPResponse(HTTPResponse * response);
-
-/***
- * Free the HTTPResponse structure
- * @param response Pointer to HTTPResponse structure
-*/
-void freeHTTPResponse(HTTPResponse * response);
 
 /***
  * Read HTML file
