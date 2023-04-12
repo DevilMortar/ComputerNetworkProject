@@ -58,6 +58,11 @@ int main(int argc, char const *argv[])
 
         buffer[numbytes] = '\0';
         HTTPRequest * received = parseHTTPRequest(buffer);
+        if (received == NULL)
+        {
+            printf("Buffer is not a valid HTTP request ! Skipping...\n");
+            continue;
+        }
         printHTTPRequest(received);
         HTTPResponse * response = createHTTPResponse(received);
         // Send HTTP response to client
@@ -67,11 +72,14 @@ int main(int argc, char const *argv[])
         {
             perror("send");
         }
+        free(response);
+        free(received);
 
         // Close connection
         close(new_fd);
     }
     close(sockfd);
+    return 0;
 }
 
 // gcc -o server server.c
