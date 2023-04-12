@@ -8,14 +8,18 @@
 
 <body>
     <nav>
+        <img src="img/nc.jpg" alt="Logo" width="50" height="50">
         <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="../pdf/calendrier-2023.pdf">Calendar</a></li>
         </ul>
     </nav>
     <main>
-        <h1>Welcome to the Mathias Citrini's Website !</h1>
-        <p>On this dummy website, you can view all the data format supported by the server</p>
+        <div class="banner">
+            <h1>Welcome to the Mathias Citrini's Website !</h1>
+            <p>On this dummy website, you can view all the data format supported by the server</p>
+        </div>
+        <p>All the principal image format are supported :</p>
         <ul>
             <li>
                 <p>GIF</p><img src="img/cat-space.gif" alt="Logo" width="300" height="300">
@@ -23,17 +27,42 @@
             <li>
                 <p>PNG</p><img src="img/Nyan-Cat.png" alt="404" width="300" height="300">
             </li>
+            <li>
+                <p>JPG</p><img src="img/nc.jpg" alt="404" width="300" height="300">
+            </li>
+            <li>
+                <p>WEBP</p><img src="img/realistic.webp" alt="404" width="300" height="300">
+            </li>
         </ul>
         </br>
         <hr>
         <p>PDF is also suported !</p>
-        <a href="../pdf/calendrier-2023.pdf">Click here to see the calendar</a>
+        <embed src="../pdf/calendrier-2023.pdf" type="application/pdf" width="50%" height="600px" />
         <hr>
+        <p>And of course, you can also listen to music !</p>
+        <audio controls>
+            <source src="mp3/opening.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <hr>
+        <p>And finally, you can also watch videos !</p>
+        <video width="320" height="240" controls>
+            <source src="mp4/video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <hr>
+        <p>Here is all the link to access files :</p>
+        <ul>
+            <li><a href="img/cat-space.gif">GIF</a></li>
+            <li><a href="img/Nyan-Cat.png">PNG</a></li>
+            <li><a href="img/nc.jpg">JPG</a></li>
+            <li><a href="../pdf/calendrier-2023.pdf">PDF</a></li>
+            <li><a href="mp3/opening.mp3">MP3</a></li>
+            <li><a href="mp4/video.mp4">MP4</a></li>
+        </ul>
+        <a href="html/404.html">404 page</a>
+        <a href="abc">Non existing page</a>
     </main>
-    <footer>
-        <a href="html/404.html">Click here to see the 404 page</a>
-        <a href="abc">Click here to go to a non-existent page (As the server handle this case, you will see the 404 page)</a>
-    </footer>
 </body>
 
 </html>
