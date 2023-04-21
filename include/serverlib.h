@@ -1,18 +1,43 @@
+/*
+    * ServerLib
+    * A simple HTTP server library
+    * Author: Mathias CITRINI
+    * License: MIT
+    * Version: 1.0.0
+    * Github: https://github.com/DevilMortar/ComputerNetworkProject
+*/
+
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <netinet/in.h> /* for struct sockaddr_in */
-#include <arpa/inet.h>  /* for htons and inet_aton */
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <stdio.h>
-#include <stdlib.h> /* pour exit */
-#include <unistd.h> /* pour close */
-#include <string.h>     /* pour memset */
-#include <unistd.h>     /* pour sleep */
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 #include <poll.h>
 #include <stdbool.h>
 #include <math.h>
 
+/***
+ * Color the text in the terminal
+ * @param x color code
+*/
 #define color(x) printf("\033[%sm", x)
 
+/***
+ * HTTPRequest structure
+ * @param method HTTP method
+ * @param path HTTP path
+ * @param version HTTP version
+ * @param host HTTP host
+ * @param user_agent HTTP user agent
+ * @param accept HTTP accept
+ * @param accept_language HTTP accept language
+ * @param accept_encoding HTTP accept encoding
+ * @param connection HTTP connection
+ * @param upgrade_insecure_requests HTTP upgrade insecure requests
+*/
 typedef struct HTTPRequest
 {
     char *method;
@@ -27,6 +52,17 @@ typedef struct HTTPRequest
     char *upgrade_insecure_requests;
 } HTTPRequest;
 
+/***
+ * HTTPResponse structure to store the HTTP response data. You can unparse this structure with the "unparseHTTPResponse" function 
+ * to get the HTTP response in string format.
+ * @param header HTTP header
+ * @param content_type HTTP content type
+ * @param content_length HTTP content length
+ * @param content HTTP content
+ * @param file_data HTTP file data
+ * @param response_size HTTP response size
+ * @param binary How to read the file (0: text, 1: binary)
+*/
 typedef struct HTTPResponse
 {
     char *header;
@@ -118,5 +154,4 @@ char * readFile(char * file_path);
  * @param path Path to the Image file
  * @return Pointer to char array
 */
-void *readImage(char *file_path, size_t *size);
-
+void *readFileBinary(char *file_path, size_t *size);
