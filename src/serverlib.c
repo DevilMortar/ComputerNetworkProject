@@ -84,13 +84,14 @@ static char *getHTTPField(char **token)
 
 HTTPRequest *parseHTTPRequest(char buffer[1024])
 {
-    // Create a copy of the buffer
-    char * copy = malloc(strlen(buffer) * sizeof(char));
-    strcpy(copy, buffer);
-    if (strlen(copy) == 0)
+    if (strlen(buffer) == 0)
     {
         return NULL;
     }
+    // Create a copy of the buffer
+    char copy[1024];
+    strcpy(copy, buffer);
+    // Initialize the HTTP request
     HTTPRequest *request = initHTTPRequest();
     const char *delim = " \n";
     // Get method
