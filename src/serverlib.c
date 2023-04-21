@@ -69,8 +69,14 @@ HTTPRequest *initHTTPRequest()
     return request;
 }
 
+/***
+ * Get the next HTTP field (e.g. Host, User-Agent, etc.)
+ * @param token token to get the next field
+ * @return the next HTTP field
+*/
 static char *getHTTPField(char **token)
 {
+    // Get the next token
     *token = strtok(NULL, " ");
     *token = strtok(NULL, "\n");
     return *token;
@@ -78,7 +84,8 @@ static char *getHTTPField(char **token)
 
 HTTPRequest *parseHTTPRequest(char buffer[1024])
 {
-    char copy[1024];
+    // Create a copy of the buffer
+    char * copy = malloc(strlen(buffer) * sizeof(char));
     strcpy(copy, buffer);
     if (strlen(copy) == 0)
     {
@@ -92,23 +99,18 @@ HTTPRequest *parseHTTPRequest(char buffer[1024])
     // Get path
     token = strtok(NULL, delim);
     strcpy(request->path, token);
-    // Get version
+    // Get Version
     token = strtok(NULL, delim);
     strcpy(request->version, token);
-    // Get host
+    // Get Fields
     request->host = getHTTPField(&token);
-    // Get user agent
     request->user_agent = getHTTPField(&token);
-    // Get accept
     request->accept = getHTTPField(&token);
-    // Get accept language
     request->accept_language = getHTTPField(&token);
-    // Get accept encoding
     request->accept_encoding = getHTTPField(&token);
-    // Get connection
     request->connection = getHTTPField(&token);
-    // Get upgrade insecure requests
     request->upgrade_insecure_requests = getHTTPField(&token);
+    // Return the parsed HTTP request
     return request;
 }
 
@@ -136,7 +138,9 @@ HTTPResponse *initHTTPResponse()
     response->content_type = malloc(100 * sizeof(char));
     response->content_length = malloc(15 * sizeof(char));
     response->content = NULL;
-    response->binary = 0;
+    response->header = NULL;
+    response->file_data = NULL;
+    response->binary = 0; // 0: text, 1: binary
     return response;
 }
 
@@ -162,90 +166,56 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
         // Set the file path to the 404 page
         strcpy(file_path, "www/html/404.html");
     }
-    else {
+    else
+    {
         response->header = "HTTP/1.1 200 OK\r\n";
     }
 
-    // Complete the contents fields according to the file type
-    if (strstr(file_path, ".html") != NULL)
+    // Get the extension of the accessed file
+    char *ext = strrchr(file_path, '.');
+    ext++;
+    printf("File path: %s\n", file_path);
+    printf("Extension of the accessed file: %s\n", ext);
+
+    // Set the content type and length and the content of the response based on the extension
+    if (strcmp(ext, "html") == 0 || strcmp(ext, "css") == 0 || strcmp(ext, "js") == 0 || strcmp(ext, "txt") == 0)
     {
-        strcpy(response->content_type, "text/html");
+        // Text
+        strcpy(response->content_type, "text/");
+        strcat(response->content_type, ext);
+        // Read the file
         char *content = readFile(file_path);
         sprintf(response->content_length, "%ld", strlen(content));
         response->content = content;
+        // Set binary to 0 to indicate that the content is not binary
         response->binary = 0;
     }
-    else if (strstr(file_path, ".css") != NULL)
-    {
-        strcpy(response->content_type, "text/css");
-        char *content = readFile(file_path);
-        sprintf(response->content_length, "%ld", strlen(content));
-        response->content = content;
-        response->binary = 0;
-    }
-    else if (strstr(file_path, ".gif") != NULL)
+    else
     {
         size_t size = 0;
-        strcpy(response->content_type, "image/gif");
-        response->file_data = readImage(file_path, &size);
+        // Images
+        if (strcmp(ext, "jpg") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "gif") == 0 || strcmp(ext, "webp") == 0 || strcmp(ext, "svg") == 0 || strcmp(ext, "ico") == 0 || strcmp(ext, "jpeg") == 0)
+            strcpy(response->content_type, "image/");
+        // Audio and video
+        else if (strcmp(ext, "mp3") == 0)
+            strcpy(response->content_type, "audio/");
+        else if (strcmp(ext, "mp4") == 0)
+            strcpy(response->content_type, "video/");
+        // Application
+        else if (strcmp(ext, "json") == 0 || strcmp(ext, "pdf") == 0)
+            strcpy(response->content_type, "application/");
+        // Default = Binary
+        else
+            strcpy(response->content_type, "application/octet-stream");
+        // Add the extension to the content type
+        if (strcmp(response->content_type, "application/octet-stream") != 0)
+            strcat(response->content_type, ext);
+        // Read the file
+        response->file_data = readFileBinary(file_path, &size);
         response->content = "";
+        // Set the content length
         sprintf(response->content_length, "%ld", size);
-        response->binary = 1;
-    }
-    else if (strstr(file_path, "webp") != NULL)
-    {
-        size_t size = 0;
-        strcpy(response->content_type, "image/webp");
-        response->file_data = readImage(file_path, &size);
-        response->content = "";
-        sprintf(response->content_length, "%ld", size);
-        response->binary = 1;
-    }
-    else if (strstr(file_path, "png") != NULL)
-    {
-        size_t size = 0;
-        strcpy(response->content_type, "image/png");
-        response->file_data = readImage(file_path, &size);
-        response->content = "";
-        sprintf(response->content_length, "%ld", size);
-        response->binary = 1;
-    }
-    else if (strstr(file_path, ".pdf") != NULL) {
-        size_t size = 0;
-        strcpy(response->content_type, "application/pdf");
-        response->file_data = readImage(file_path, &size);
-        response->content = "";
-        sprintf(response->content_length, "%ld", size);
-        response->binary = 1;
-    }
-    // JPG
-    else if (strstr(file_path, ".jpg") != NULL)
-    {
-        size_t size = 0;
-        strcpy(response->content_type, "image/jpeg");
-        response->file_data = readImage(file_path, &size);
-        response->content = "";
-        sprintf(response->content_length, "%ld", size);
-        response->binary = 1;
-    }
-    // MP3
-    else if (strstr(file_path, ".mp3") != NULL)
-    {
-        size_t size = 0;
-        strcpy(response->content_type, "audio/mpeg");
-        response->file_data = readImage(file_path, &size);
-        response->content = "";
-        sprintf(response->content_length, "%ld", size);
-        response->binary = 1;
-    }
-    // MP4
-    else if (strstr(file_path, ".mp4") != NULL)
-    {
-        size_t size = 0;
-        strcpy(response->content_type, "video/mp4");
-        response->file_data = readImage(file_path, &size);
-        response->content = "";
-        sprintf(response->content_length, "%ld", size);
+        // Set binary to 1 to indicate that the content is binary
         response->binary = 1;
     }
     return response;
@@ -253,20 +223,26 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
 
 char *unparseHTTPResponse(HTTPResponse *response)
 {
+    // Initialize the header
     char *type = "Content-Type: ";
     char *length = "Content-Length: ";
     char *end = "\r\n";
     response->response_size = 0;
     if (response->binary == 1)
     {
-        // cast content_length to int to avoid warning
+        // Cast content_length to int to avoid warning
         int content_length = atoi(response->content_length);
+        // Calculate the size of the response
         response->response_size = (strlen(response->header) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end)) * sizeof(char) + content_length + 1;
     }
-    else {
+    else
+    {
+        // Calculate the size of the response
         response->response_size = (strlen(response->header) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end) + strlen(response->content)) * sizeof(char) + 1;
     }
+    // Allocate memory for the response
     char *buffer = malloc(response->response_size);
+    // Create the response
     strcpy(buffer, response->header);
     strcat(buffer, type);
     strcat(buffer, response->content_type);
@@ -275,71 +251,70 @@ char *unparseHTTPResponse(HTTPResponse *response)
     strcat(buffer, response->content_length);
     strcat(buffer, end);
     strcat(buffer, end);
-
-
+    // Add the content to the response
     if (response->binary == 1)
     {
+        // Add the binary file data to the response
         memcpy(buffer + strlen(buffer), response->file_data, atoi(response->content_length));
     }
-    else {
+    else
+    {
+        // Add the text content to the response
         strcat(buffer, response->content);
     }
     return buffer;
 }
-
-    
 
 void printHTTPResponse(HTTPResponse *response)
 {
     printf("Server response:\n");
     color("00");
     color("34");
-    char * buffer = unparseHTTPResponse(response);
+    char *buffer = unparseHTTPResponse(response);
     printf("%s\n\n", buffer);
     color("00");
     color("37");
     color("01");
 }
 
+/***
+ * Get the size of a file
+ * @param file The file
+ * @return The size of the file
+*/
+static size_t getFileSize(FILE *file)
+{
+    fseek(file, 0L, SEEK_END);
+    size_t size = ftell(file);
+    fseek(file, 0L, SEEK_SET);
+    return size;
+}
+
 char *readFile(char *file_path)
 {
-    // Open the HTML file
+    // Open the Text file (HTML, CSS, JS, TXT)
     FILE *file = fopen(file_path, "r");
-    // Copy the file content to the response content
-    char *content = malloc(10000 * sizeof(char));
-    char c;
-    while ((c = fgetc(file)) != EOF)
-    {
-        if (c == '\n')
-        {
-            strcat(content, "");
-        }
-        else
-        {
-            char *s = malloc(2 * sizeof(char));
-            s[0] = c;
-            s[1] = '\0';
-            strcat(content, s);
-        }
-    }
+    // Allocate memory for the content
+    size_t size = getFileSize(file);
+    char *content = malloc(size * sizeof(char));
+    // Read the file
+    fread(content, 1, size, file);
     strcat(content, "\0");
+    // Close the file
     fclose(file);
     return content;
 }
 
-void * readImage(char *file_path, size_t *size) {
+void *readFileBinary(char *file_path, size_t *size)
+{
     // Read size of file
     FILE *file = fopen(file_path, "rb");
-
-    // Get file size
-    fseek(file, 0, SEEK_END);
-    *size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
+    // Get the size of the file
+    *size = getFileSize(file);
     // Read file
     void *content = malloc(*size);
     fread(content, 1, *size, file);
-
+    // Close the file
+    fclose(file);
     return content;
 }
-
