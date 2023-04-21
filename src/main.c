@@ -1,13 +1,6 @@
-// Author : Mathias Citrini
-// Created: 2023/03/29
-// Updated: 2023/03/29
-// Version: 1.0
-
-#include "../include/header.h"
+#include "../include/serverlib.h"
 
 #define BACKLOG 10
-
-// Part A : Web server simply dumps HTTP request messages to the console.
 
 int main(int argc, char const *argv[])
 {
@@ -63,6 +56,7 @@ int main(int argc, char const *argv[])
             printf("Buffer is not a valid HTTP request ! Skipping...\n");
             continue;
         }
+        // Part A prerequisites - Dump HTTP request to consoles
         printHTTPRequest(received);
         HTTPResponse * response = createHTTPResponse(received);
         // Send HTTP response to client
@@ -81,5 +75,3 @@ int main(int argc, char const *argv[])
     close(sockfd);
     return 0;
 }
-
-// gcc -o server server.c
