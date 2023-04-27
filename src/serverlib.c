@@ -1,11 +1,27 @@
 #include "../include/serverlib.h"
 
-static void dumpError(char *message)
+void dumpError(char *message)
 {
     color("31");
     printf("\n");
     perror(message);
-    exit(1);
+}
+
+void printError(char * message)
+{
+    color("31");
+    printf("%s\n", message);
+    color("37");
+}
+
+void checkArguments(int argc, char const *argv[])
+{
+    if (argc != 2)
+    {
+        color("31");
+        printError("Usage: ./server <port>");
+        exit(1);
+    }
 }
 
 void setServerAddress(struct sockaddr_in *server_addr, int port)
@@ -24,6 +40,7 @@ int createSocket()
     if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1)
     {
         dumpError("socket");
+        exit(1);
     }
     color("32");
     printf("Socket created successfully\n");
@@ -39,6 +56,7 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd)
     if (bind(sockfd, (struct sockaddr *)server_addr, sizeof(struct sockaddr)) == -1)
     {
         dumpError("bind");
+        exit(1);
     }
 
     // Listen
@@ -46,6 +64,7 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd)
     if (listen(sockfd, backlog) == -1)
     {
         dumpError("listen");
+        exit(1);
     }
 
     color("32");
@@ -139,7 +158,7 @@ HTTPResponse *initHTTPResponse()
     response->content_type = malloc(100 * sizeof(char));
     response->content_length = malloc(15 * sizeof(char));
     response->content = NULL;
-    response->header = NULL;
+    response->startline = NULL;
     response->file_data = NULL;
     response->binary = 0; // 0: text, 1: binary
     return response;
@@ -163,13 +182,13 @@ HTTPResponse *createHTTPResponse(HTTPRequest *request)
     // Check if the file exists
     if (access(file_path, F_OK) != 0)
     {
-        response->header = "HTTP/1.1 404 Not Found\r\n";
+        response->startline = "HTTP/1.1 404 Not Found\r\n";
         // Set the file path to the 404 page
         strcpy(file_path, "www/html/404.html");
     }
     else
     {
-        response->header = "HTTP/1.1 200 OK\r\n";
+        response->startline = "HTTP/1.1 200 OK\r\n";
     }
 
     // Get the extension of the accessed file
@@ -234,17 +253,17 @@ char *unparseHTTPResponse(HTTPResponse *response)
         // Cast content_length to int to avoid warning
         int content_length = atoi(response->content_length);
         // Calculate the size of the response
-        response->response_size = (strlen(response->header) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end)) * sizeof(char) + content_length + 1;
+        response->response_size = (strlen(response->startline) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end)) * sizeof(char) + content_length + 1;
     }
     else
     {
         // Calculate the size of the response
-        response->response_size = (strlen(response->header) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end) + strlen(response->content)) * sizeof(char) + 1;
+        response->response_size = (strlen(response->startline) + strlen(type) + strlen(response->content_type) + strlen(length) + strlen(response->content_length) + 3 * strlen(end) + strlen(response->content)) * sizeof(char) + 1;
     }
     // Allocate memory for the response
     char *buffer = malloc(response->response_size);
     // Create the response
-    strcpy(buffer, response->header);
+    strcpy(buffer, response->startline);
     strcat(buffer, type);
     strcat(buffer, response->content_type);
     strcat(buffer, end);

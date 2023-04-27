@@ -1,1 +1,1 @@
-make && ./bin/server $1
+make && ./server $1
