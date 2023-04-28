@@ -70,7 +70,7 @@ typedef struct HTTPResponse
     char *content_length;
     char *content;
     void *file_data;
-    char *response_size;
+    size_t response_size;
     bool binary;
 } HTTPResponse;
 

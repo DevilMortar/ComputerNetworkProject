@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
     struct sockaddr_in server_addr;
     struct sockaddr_in client_addr;
     // size of client address
-    int sin_size;
+    unsigned int sin_size;
 
     setServerAddress(&server_addr, port);
     startServer(&server_addr, BACKLOG, sockfd);
