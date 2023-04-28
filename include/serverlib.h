@@ -55,7 +55,8 @@ typedef struct HTTPRequest
 /***
  * HTTPResponse structure to store the HTTP response data. You can unparse this structure with the "unparseHTTPResponse" function 
  * to get the HTTP response in string format.
- * @param header HTTP header
+ * @param startline HTTP startline
+ * @param date HTTP date
  * @param content_type HTTP content type
  * @param content_length HTTP content length
  * @param content HTTP content
@@ -65,7 +66,7 @@ typedef struct HTTPRequest
 */
 typedef struct HTTPResponse
 {
-    char *header;
+    char *startline;
     char *content_type;
     char *content_length;
     char *content;
