@@ -5,7 +5,6 @@ include = ./include
 
 server: main.o serverlib.o
 	gcc -o server main.o serverlib.o -lm
-	mv server $(bin)
 	mv *.o $(lib)
 	
 main.o : $(src)/main.c $(src)/serverlib.o
