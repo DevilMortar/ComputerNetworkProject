@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto+Mono:400,700|Roboto:400,700&display=swap');
+
 nav {
-    background-color: #000;
+    background-color: #941010;
     color: #ffffff;
     padding: 10px;
     text-align: center;
@@ -24,15 +26,18 @@ h1 {
     font-weight: bold;
     letter-spacing: 0.1em;
     margin-bottom: 5px;
+    font-family: 'Roboto Mono', monospace;
 }
 
 h2 {
     text-align: center;
-    font-size: 1em;
+    font-size: 1.2em;
     font-weight: bold;
     text-decoration: underline;
     letter-spacing: 0.1em;
     margin-bottom: 5px;
+    color: white;
+    font-family: 'Roboto Mono', monospace;
 }
 
 main a {
@@ -52,6 +57,7 @@ ul {
 
 p {
     text-align: center;
+    color: white;
 }
 
 main {
@@ -65,19 +71,13 @@ main, footer {
     align-items: center;
 }
 
-footer {
-    margin-top: 20px;
-    background-color: #000;
-    color: #fff;
-}
-
 hr {
     width: 50%;
     margin: 20px auto;
 }
 
 body {
-    background-color: #feedff;
+    background-image: url("../img/bg.png");
 }
 
 .banner {
