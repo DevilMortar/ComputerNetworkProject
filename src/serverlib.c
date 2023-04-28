@@ -1,11 +1,27 @@
 #include "../include/serverlib.h"
 
-static void dumpError(char *message)
+void dumpError(char *message)
 {
     color("31");
     printf("\n");
     perror(message);
-    exit(1);
+}
+
+void printError(char * message)
+{
+    color("31");
+    printf("%s\n", message);
+    color("37");
+}
+
+void checkArguments(int argc, char const *argv[])
+{
+    if (argc != 2)
+    {
+        color("31");
+        printError("Usage: ./server <port>");
+        exit(1);
+    }
 }
 
 void setServerAddress(struct sockaddr_in *server_addr, int port)
@@ -24,6 +40,7 @@ int createSocket()
     if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1)
     {
         dumpError("socket");
+        exit(1);
     }
     color("32");
     printf("Socket created successfully\n");
@@ -39,6 +56,7 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd)
     if (bind(sockfd, (struct sockaddr *)server_addr, sizeof(struct sockaddr)) == -1)
     {
         dumpError("bind");
+        exit(1);
     }
 
     // Listen
@@ -46,6 +64,7 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd)
     if (listen(sockfd, backlog) == -1)
     {
         dumpError("listen");
+        exit(1);
     }
 
     color("32");

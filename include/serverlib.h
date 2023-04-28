@@ -75,6 +75,25 @@ typedef struct HTTPResponse
 } HTTPResponse;
 
 /***
+ * @brief Exit the program if the command line arguments are not valid
+ * @param argc number of arguments
+ * @param argv arguments
+*/
+void checkArguments(int argc, char const *argv[]);
+
+/***
+ * Dump the error message in the console (color: red)
+ * @param message error message
+*/
+void dumpError(char *message);
+
+/***
+ * Print the error message in the console (color: red)
+ * @param message error message
+*/
+void printError(char *message);
+
+/***
  * Set the sockaddr_in structure with the server address
  * @param server_addr server address to set
  * @param port port number

@@ -8,11 +8,7 @@ int main(int argc, char const *argv[])
     color("01");
     color("37");
     // Check arguments
-    if (argc != 2)
-    {
-        printf("Usage: %s <port>\n", argv[0]);
-        return 1;
-    }
+    checkArguments(argc, argv);
 
     // Port number
     int port = atoi(argv[1]);
@@ -35,7 +31,7 @@ int main(int argc, char const *argv[])
         sin_size = sizeof(struct sockaddr_in);
         if ((new_fd = accept(sockfd, (struct sockaddr *)&client_addr, &sin_size)) == -1)
         {
-            perror("accept");
+            dumpError("accept");
             continue;
         }
         printf("Server got connection from %s !\n", inet_ntoa(client_addr.sin_addr));
@@ -45,7 +41,7 @@ int main(int argc, char const *argv[])
         int numbytes;
         if ((numbytes = recv(new_fd, buffer, 1024, 0)) == -1)
         {
-            perror("recv");
+            dumpError("recv");
             exit(1);
         }
 
@@ -53,18 +49,21 @@ int main(int argc, char const *argv[])
         HTTPRequest * received = parseHTTPRequest(buffer);
         if (received == NULL)
         {
-            printf("Buffer is not a valid HTTP request ! Skipping...\n");
+            printError("Buffer is not a valid HTTP request ! Skipping...\n");
             continue;
         }
         // Part A prerequisites - Dump HTTP request to consoles
         printHTTPRequest(received);
+        // Part B prerequisites - Create HTTP response
         HTTPResponse * response = createHTTPResponse(received);
-        // Send HTTP response to client
-        char *responseStr = unparseHTTPResponse(response);
         printHTTPResponse(response);
-        if (send(new_fd, responseStr, response->response_size, 0) == -1)
+        // Part B prerequisites - Send HTTP response
+        char *responseStr = unparseHTTPResponse(response);
+        size_t responseSize = response->response_size;
+        if (send(new_fd, responseStr, responseSize, 0) == -1)
         {
             perror("send");
+            exit(1);
         }
         free(response);
         free(received);
