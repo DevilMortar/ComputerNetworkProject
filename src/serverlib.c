@@ -14,6 +14,13 @@ void printError(char * message)
     color("37");
 }
 
+static void printSuccess(char * message)
+{
+    color("32");
+    printf("%s\n", message);
+    color("37");
+}
+
 void checkArguments(int argc, char const *argv[])
 {
     if (argc != 2)
@@ -42,9 +49,7 @@ int createSocket()
         dumpError("socket");
         exit(1);
     }
-    color("32");
-    printf("Socket created successfully\n");
-    color("37");
+    printSuccess("Socket created successfully");
     return sockfd;
 }
 
@@ -66,10 +71,7 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd)
         dumpError("listen");
         exit(1);
     }
-
-    color("32");
-    printf("Server has been started successfully\n\n");
-    color("37");
+    printSuccess("Server started successfully\n");
 }
 
 HTTPRequest *initHTTPRequest()
@@ -290,8 +292,22 @@ void printHTTPResponse(HTTPResponse *response)
     printf("Server response:\n");
     color("00");
     color("34");
-    char *buffer = unparseHTTPResponse(response);
-    printf("%s\n\n", buffer);
+    printf("%s", response->startline);
+    printf("Content-Type: ");
+    printf("%s", response->content_type);
+    printf("\n");
+    printf("Content-Length: ");
+    printf("%s", response->content_length);
+    printf("\n");
+    printf("\n");
+    if (response->binary == 1)
+    {
+        printf("Binary file data\n\n");
+    }
+    else
+    {
+        printf("%s\n\n", response->content);
+    }
     color("00");
     color("37");
     color("01");
