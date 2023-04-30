@@ -4,6 +4,7 @@
 
 int main(int argc, char const *argv[])
 {
+    /* -------------- Part A -------------- */
     // Prepare console
     system("clear");
     color("01");
@@ -15,6 +16,24 @@ int main(int argc, char const *argv[])
         printError("Usage: ./server <port>");
         exit(1);
     }
+
+    printf("Hello sir, welcome to my server !\n");
+    printf("You chose to run the server on port: %s\n", argv[1]);
+    printf("Default IP address is: 127.0.0.1\n\n");
+
+    color("35");
+    printf("- The part A of the project is to dump the HTTP request to the console.\n");
+    printf("- The part B of the project is to send a HTTP response to the client.\n");
+    printf("Both parts are implemented in this program.\n\n");
+    color("37");
+
+    printf("A test website is available at http://<IP address>:<port>/index.html\n");
+    printf("If you want to test partA, please type 1\n");
+    printf("If you want to test both parts, please type 2\n");
+    printf("1 or 2 ? ");
+    int choice;
+    scanf("%d", &choice);
+    system("clear");
 
     // Port number
     int port = atoi(argv[1]);
@@ -50,7 +69,7 @@ int main(int argc, char const *argv[])
             exit(1);
         }
         buffer[numbytes] = '\0';
-        // Part A prerequisites - Parse HTTP request
+        // Parse HTTP request
         HTTPRequest * received = parseHTTPRequest(buffer);
         if (received == NULL)
         {
@@ -59,6 +78,12 @@ int main(int argc, char const *argv[])
         }
         // Part A prerequisites - Dump HTTP request to consoles
         printHTTPRequest(received);
+        // Continue or exit
+        if (choice == 1)
+        {
+            continue;
+        }
+        /* -------------- Part B -------------- */
         // Part B prerequisites - Create HTTP response
         HTTPResponse * response = createHTTPResponse(received);
         printHTTPResponse(response);
