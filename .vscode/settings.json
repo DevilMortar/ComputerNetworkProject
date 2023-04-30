@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "serverlib.h": "c"
+        "serverlib.h": "c",
+        "string.h": "c"
     }
 }
