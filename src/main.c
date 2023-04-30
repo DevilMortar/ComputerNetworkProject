@@ -4,15 +4,20 @@
 
 int main(int argc, char const *argv[])
 {
+    // Prepare console
     system("clear");
     color("01");
     color("37");
+
     // Check arguments
-    checkArguments(argc, argv);
+    if (argc != 2)
+    {
+        printError("Usage: ./server <port>");
+        exit(1);
+    }
 
     // Port number
     int port = atoi(argv[1]);
-
     // socket file descriptor
     int sockfd = createSocket();
     int new_fd;
@@ -44,8 +49,8 @@ int main(int argc, char const *argv[])
             dumpError("recv");
             exit(1);
         }
-
         buffer[numbytes] = '\0';
+        // Part A prerequisites - Parse HTTP request
         HTTPRequest * received = parseHTTPRequest(buffer);
         if (received == NULL)
         {
@@ -65,8 +70,9 @@ int main(int argc, char const *argv[])
             perror("send");
             exit(1);
         }
+        // Free memory
         free(response);
-        free(received);
+        freeHTTPRequest(received);
 
         // Close connection
         close(new_fd);

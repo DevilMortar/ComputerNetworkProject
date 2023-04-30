@@ -1,5 +1,7 @@
 #include "../include/serverlib.h"
 
+/* --- System to print server status --- */
+
 void dumpError(char *message)
 {
     color("31");
@@ -21,15 +23,8 @@ static void printSuccess(char * message)
     color("37");
 }
 
-void checkArguments(int argc, char const *argv[])
-{
-    if (argc != 2)
-    {
-        color("31");
-        printError("Usage: ./server <port>");
-        exit(1);
-    }
-}
+/* ------------------------------------- PART A ------------------------------------- */
+/* --- Server launch --- */
 
 void setServerAddress(struct sockaddr_in *server_addr, int port)
 {
@@ -74,33 +69,17 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd)
     printSuccess("Server started successfully\n");
 }
 
+/* --- HTTP request handling --- */
+
 HTTPRequest *initHTTPRequest()
 {
     HTTPRequest *request = malloc(sizeof(HTTPRequest));
     request->method = malloc(10 * sizeof(char));
     request->path = malloc(100 * sizeof(char));
     request->version = malloc(10 * sizeof(char));
-    request->host = malloc(100 * sizeof(char));
-    request->user_agent = malloc(100 * sizeof(char));
-    request->accept = malloc(100 * sizeof(char));
-    request->accept_language = malloc(100 * sizeof(char));
-    request->accept_encoding = malloc(100 * sizeof(char));
-    request->connection = malloc(100 * sizeof(char));
-    request->upgrade_insecure_requests = malloc(10 * sizeof(char));
+    request->firstField = NULL;
+    request->lastField = NULL;
     return request;
-}
-
-/***
- * Get the next HTTP field (e.g. Host, User-Agent, etc.)
- * @param token token to get the next field
- * @return the next HTTP field
-*/
-static char *getHTTPField(char **token)
-{
-    // Get the next token
-    *token = strtok(NULL, " ");
-    *token = strtok(NULL, "\n");
-    return *token;
 }
 
 HTTPRequest *parseHTTPRequest(char buffer[1024])
@@ -125,13 +104,36 @@ HTTPRequest *parseHTTPRequest(char buffer[1024])
     token = strtok(NULL, delim);
     strcpy(request->version, token);
     // Get Fields
-    request->host = getHTTPField(&token);
-    request->user_agent = getHTTPField(&token);
-    request->accept = getHTTPField(&token);
-    request->accept_language = getHTTPField(&token);
-    request->accept_encoding = getHTTPField(&token);
-    request->connection = getHTTPField(&token);
-    request->upgrade_insecure_requests = getHTTPField(&token);
+    while (token != NULL)
+    {
+        HTTPField * field = malloc(sizeof(HTTPField));
+        // Get the next field name
+        token = strtok(NULL, ":");
+        field->name = token;
+        // Get the next field value
+        token = strtok(NULL, "\n");
+        field->value = token;
+        // Delete the first space
+        if (field->value != NULL)
+        {
+            field->value++;
+        }
+        // Add the field to the chain
+        field->next = NULL;
+        if (field->name == NULL || field->value == NULL)
+        {
+            free(field);
+            break;
+        }
+        if (request->firstField == NULL) {
+            request->firstField = field;
+            request->lastField = field;
+        } 
+        else {
+            request->lastField->next = field;
+            request->lastField = field;
+        }
+    }
     // Return the parsed HTTP request
     return request;
 }
@@ -143,16 +145,34 @@ void printHTTPRequest(HTTPRequest *request)
     printf("Method: %s\n", request->method);
     printf("Path: %s\n", request->path);
     printf("Version: %s\n", request->version);
-    printf("Host: %s\n", request->host);
-    printf("User agent: %s\n", request->user_agent);
-    printf("Accept: %s\n", request->accept);
-    printf("Accept language: %s\n", request->accept_language);
-    printf("Accept encoding: %s\n", request->accept_encoding);
-    printf("Connection: %s\n", request->connection);
-    printf("Upgrade insecure requests: %s\n\n", request->upgrade_insecure_requests);
+    HTTPField *field = request->firstField;
+    while (field != NULL)
+    {
+        printf("%s: %s\n", field->name, field->value);
+        field = field->next;
+    }
+    printf("\n");
     color("37");
     color("01");
 }
+
+void freeHTTPRequest(HTTPRequest *request)
+{
+    free(request->method);
+    free(request->path);
+    free(request->version);
+    HTTPField *field = request->firstField;
+    while (field != NULL)
+    {
+        HTTPField *next = field->next;
+        free(field);
+        field = next;
+    }
+    free(request);
+}
+
+/* ------------------------------------- PART B ------------------------------------- */
+/* --- HTTP response handling --- */
 
 HTTPResponse *initHTTPResponse()
 {
@@ -312,6 +332,8 @@ void printHTTPResponse(HTTPResponse *response)
     color("37");
     color("01");
 }
+
+/* --- File reading --- */
 
 /***
  * Get the size of a file

@@ -25,31 +25,35 @@
 */
 #define color(x) printf("\033[%sm", x)
 
+/* --- Define the structure for the project --- */
+
+/***
+ * HTTPField structure to store the HTTP fields
+ * @param name field name
+ * @param value field value
+ * @param next pointer to the next field
+*/
+typedef struct HTTPField
+{
+    char *name;
+    char *value;
+    struct HTTPField *next;
+} HTTPField;
+
 /***
  * HTTPRequest structure
  * @param method HTTP method
  * @param path HTTP path
  * @param version HTTP version
- * @param host HTTP host
- * @param user_agent HTTP user agent
- * @param accept HTTP accept
- * @param accept_language HTTP accept language
- * @param accept_encoding HTTP accept encoding
- * @param connection HTTP connection
- * @param upgrade_insecure_requests HTTP upgrade insecure requests
+ * @param firstField HTTP fields
 */
 typedef struct HTTPRequest
 {
     char *method;
     char *path;
     char *version;
-    char *host;
-    char *user_agent;
-    char *accept;
-    char *accept_language;
-    char *accept_encoding;
-    char *connection;
-    char *upgrade_insecure_requests;
+    HTTPField *firstField;
+    HTTPField *lastField;
 } HTTPRequest;
 
 /***
@@ -75,12 +79,9 @@ typedef struct HTTPResponse
     bool binary;
 } HTTPResponse;
 
-/***
- * @brief Exit the program if the command line arguments are not valid
- * @param argc number of arguments
- * @param argv arguments
-*/
-void checkArguments(int argc, char const *argv[]);
+/* ------------------------------------ PART A ------------------------------------ */
+
+/* --- Server status --- */
 
 /***
  * Dump the error message in the console (color: red)
@@ -93,6 +94,8 @@ void dumpError(char *message);
  * @param message error message
 */
 void printError(char *message);
+
+/* --- Server Launch --- */
 
 /***
  * Set the sockaddr_in structure with the server address
@@ -117,6 +120,8 @@ void startServer(struct sockaddr_in *server_addr, int backlog, int sockfd);
  */
 int createSocket();
 
+/* --- HTTP Request Handling --- */
+
 /***
  * Parse the HTTP request
  * @param buffer buffer containing the HTTP request
@@ -135,6 +140,16 @@ HTTPRequest * initHTTPRequest();
  * @param request Pointer to HTTPRequest structure
 */
 void printHTTPRequest(HTTPRequest * request);
+
+/***
+ * Free the HTTPRequest structure
+ * @param request Pointer to HTTPRequest structure
+*/
+void freeHTTPRequest(HTTPRequest * request);
+
+/* ------------------------------------ PART B ------------------------------------ */
+
+/* --- HTTP Response Handling --- */
 
 /***
  * Initialize the HTTPResponse structure
@@ -161,6 +176,8 @@ char * unparseHTTPResponse(HTTPResponse * response);
  * @param response Pointer to HTTPResponse structure
 */
 void printHTTPResponse(HTTPResponse * response);
+
+/* --- File Handling --- */
 
 /***
  * Read HTML file
