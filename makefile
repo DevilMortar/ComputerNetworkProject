@@ -14,5 +14,5 @@ serverlib.o : $(include)/serverlib.h $(src)/serverlib.c
 	gcc -g -Wall -c $(src)/serverlib.c
 
 clean :
-	rm -f $(bin)/server $(lib)/*.o
+	rm -f server $(lib)/*.o
 	
