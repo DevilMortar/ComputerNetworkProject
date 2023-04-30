@@ -7,4 +7,3 @@ function displayTime() {
 
 // Call the function every second
 setInterval(displayTime, 1000);
-
