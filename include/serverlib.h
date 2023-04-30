@@ -46,6 +46,7 @@ typedef struct HTTPField
  * @param path HTTP path
  * @param version HTTP version
  * @param firstField HTTP fields
+ * @param lastField HTTP fields
 */
 typedef struct HTTPRequest
 {
