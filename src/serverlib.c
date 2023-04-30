@@ -353,11 +353,12 @@ char *readFile(char *file_path)
     // Open the Text file (HTML, CSS, JS, TXT)
     FILE *file = fopen(file_path, "r");
     // Allocate memory for the content
+    // Get the size of the text file
     size_t size = getFileSize(file);
-    char *content = malloc(size * sizeof(char));
+    char *content = malloc(size + 1);
     // Read the file
     fread(content, 1, size, file);
-    strcat(content, "\0");
+    content[size] = '\0';
     // Close the file
     fclose(file);
     return content;
