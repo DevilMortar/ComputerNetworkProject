@@ -124,7 +124,7 @@ int createSocket();
 /* --- HTTP Request Handling --- */
 
 /***
- * Parse the HTTP request
+ * Parse the HTTP request dynamically to get all the fields
  * @param buffer buffer containing the HTTP request
  * @return Pointer to HTTPRequest structure
  */
